@@ -1,0 +1,156 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>Untitled Document</title>
+<link href="css/main.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+<h1>Licensing</h1>
+<p>By having any Visage Technologies Program, or part of it, installed or copied on your computer, you agree to the terms of the <a href="../../../VT License Agreement.pdf">Visage Technologies AB Software License Agreement</a>. If you do not agree with these terms, please entirely remove any Visage Technologies Programs from your computer.</p>
+
+<p>This page focuses on technical issues such as obtaining and using the license key files. For detailed commercial conditions please <a href="http://www.visagetechnologies.com/contact/" target="New">contact Visage Technologies</a>.</p>
+
+<p>Applications developed using visage|SDK must be licensed in order to function. Licensing is based on License Key Files. A single License Key File is valid for one or more installations on one or more platforms (operating systems). The License Key File can be opened in a text editor (e.g. Windows Notepad or similar) in order to read the licensing information, but it is important not to change the file in any way as it would become invalid.</p>
+
+<p>Applications without a valid license key will not work properly and appropriate warning message will be displayed.</p>
+
+<h2>Obtaining the License Key File</h2>
+
+<p>For 30-day evaluation, simply send an email request to your Visage Technologies contact person and you will receive a License Key File by email.</p>
+
+<p>If you are purchasing a license, your Visage Technologies
+contact person will deliver your License Key File by email based on your purchase order.</p>
+
+
+<h2>Using the License Key File with Sample projects</h2>
+<p>visage|SDK Sample projects already contain the necessary licensing initialization code so they can be built and used without any modifications.</p> 
+
+<p>Place the License Key File into the visageSDK/bin folder. The license will be automatically registered on first use of the built Sample application (network connection is required at this time).</p>
+
+
+<h2>Using the License Key File in own projects</h2>
+<p>The License Key File must be distributed with your Application and be accessible to it. In your application, you need to call the licensing initialization function in order to let the Application read the License Key File. This is done as follows in your application code:</p><br>
+
+<b>a) C++ API</b><br><br>
+
+<code>
+
+namespace VisageSDK //all visage|SDK calls must be in visageSDK namespace<br>
+{<br>
+&ensp;&ensp;// declaration to be placed in your .cpp or .h file<br>
+&ensp;&ensp;void __declspec(dllimport) initializeLicenseManager(const char *licenseKeyFileFolder);<br>
+<br>
+&ensp;&ensp;void main() // or equivalent function that executes when your Application starts<br>
+&ensp;&ensp;{<br>
+&ensp;&ensp;&ensp;&ensp;initializeLicenseManager("path");<br>
+&ensp;&ensp;&ensp;&ensp;// ... the rest of your application<br>
+&ensp;&ensp;}<br>
+}<br>
+</code><br>
+
+<b>b) C# API</b><br><br>
+
+<code>
+
+using VisageWrapper;<br><br>
+namespace MyNamespace<br>
+{<br>
+&ensp;&ensp;class MyClass<br>
+&ensp;&ensp;{<br>
+&ensp;&ensp;&ensp;&ensp;void main() // or equivalent function that executes when your Application starts<br>
+&ensp;&ensp;&ensp;&ensp;{<br>
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;VisageLicensing.initializeLicenseManager("path");<br>
+&ensp;&ensp;&ensp;&ensp;&ensp;&ensp;// ... the rest of your application<br>
+&ensp;&ensp;&ensp;&ensp;}<br>
+&ensp;&ensp;}<br>
+}<br>
+</code>
+
+<p>"path" is the folder that contains the License Key File. The simplest is to use "." as the path, and place the License Key File into the same folder with the Application.<br></p>
+<p>In FaceTracker2 sample, path to license key file is specified in LicenseString.h.<br>
+In GazeTracker sample, path to license key file is specified in LicenseString.h.<br>
+In ShowcaseDemo sample, path to license key file is specified in LicenseString.cs.</p>
+
+<p>The license will be automatically registered with the Visage Technologies Licensing Server on first use of the Application, so a working network connection is required at this time. When the License Key File is valid for multiple installations, the Licensing Server allows the licensed number of installations. Some license types (e.g. floating licenses) make automatic connection to the Licensing Server on every use of the Application.</p>
+
+
+<p>If multiple Windows users use the Application, network connection to the licensing server is performed for each user at first use of the Application; this can be avoided using manual registration process - see next section.</p>
+
+<h2>Manual registration</h2>
+<p>While the described automatic registration of licenses is usually the most convenient way to use Visage Technologies licensing, it is also possible to register the license manually using the Registration Manager  application (registrationmanager.exe found in the <a href="../../..">Visage Technologies folder</a>).</p>
+
+<b>IMPORTANT: you must have Administrator privileges to run the Registration Manager - use the "Run as Administrator" option (your account must have administrator privileges).</b>
+
+<p>To register the license manually, please copy the License Key File into the <a href="../../..">Visage Technologies folder</a>, then start the Registration Manager. The Registration Manager will recognize the license, display a dialog box with its information and register it. Registration Manager will connect to the Licensing Server so network connection is required.</p>
+
+<b>NOTE: after performing the manual registration, it is still necessary to follow the instructions in the section "Using the License Key File in own projects" in order to let your application access the License Key File.</b>
+
+<h2>Registration without network connection</h2>
+
+<p>Alternatively, for users wishing to avoid networked registration, it is possible to perform a fully manual registration in the following way:</p>
+
+<ul>
+  <li>Run Registration Manager <b>before</b> requesting the Licence Key File.</li>
+  <li>Copy the 12-digit <b>Device ID</b> displayed by the Registration Manager and send it by email to your Visage Technologies contact person when requesting the License Key File.</li>
+  <li>You will receive a <b>device-specific</b> License Key File that does not require registration with the Licensing Server.</li>
+  <li>Copy the License Key File you received into the Visage Technologies folder, then run the Registration Manager again. It will recognise the License Key, provide you the information about the License Key you obtained, and register it locally on your computer (no network connection required).</li>
+  <li>Follow the instructions in the section "Using the License Key File in own projects" in order to let your application access the License Key File.</li>
+</ul>
+
+
+<h2>Removing the license or moving it to another computer</h2>
+<p>To remove the previously registered license from your computer:</p>
+
+<ul>
+  <li>Start the Registration Manager (see previous section). </li>
+  <li>Select the license you want to remove from the displayed list of registered licenses, then click on "Remove license".</li>
+  <li>After an additional confirmation, the license is removed.</li>
+  <li>A message containing the removal details is displayed; copy this message and send it by email to licensing@visagetechnologies.com.</li>
+  <li>You will receive a confirmation by email, normally within one business day.</li>
+  <li>Additionally, for refference purposes, the removal information is stored in the file named "license-removal-xxx.txt in the <a href="../../..">Visage Technologies folder</a>.</li>
+</ul>
+
+<p>After the removal is confirmed by Visage Technologies, you can use the original License Key File to register the license on another computer.</p>
+
+
+<h2>Web License</h2>
+<p>Web License allows deploying one Web Application on a single server. The license registration technique
+depends on whether your Web Application is server-based (runs on the server) or client-based (runs on the
+end-user's computer, typically as a browser plugin or similar). Combined implementation (both client- and server-side) 
+is possible by simply using both registration procedures explained below.</p>
+
+
+<br><b>Server-based Web Applications</b>
+<p>The procedure for obtaining and registering server-side licenses is identical to the process explained above.</p>
+
+<br><b>Client-based Web Applications</b>
+<p>With this type of Web license you have received the License Key File registered for a specific URL where your application will be deployed. The License Key File must be distributed together with the Application.
+<p>You need to call the initialization function in order to let the Application read it. This is done as follows in your application code:</p>
+
+<code>
+
+namespace VisageSDK //all visage|SDK calls must be in visageSDK namespace<br>
+{<br>
+&ensp;&ensp;// declaration to be placed in your .cpp or .h file<br>
+&ensp;&ensp;void __declspec(dllimport) initializeLicenseManager(const char *licenseKeyFileFolder);<br>
+<br>
+&ensp;&ensp;void main() // or equivalent function that executes when your Application starts<br>
+&ensp;&ensp;{<br>
+&ensp;&ensp;&ensp;&ensp;initializeLicenseManager("path");<br>
+&ensp;&ensp;&ensp;&ensp;// ... the rest of your application<br>
+&ensp;&ensp;}<br>
+}<br>
+</code>
+<p>"path" is the folder that contains the License Key File. The simplest is to use "." as the path, and place the License Key File into the same folder with the Application.</p>
+
+
+
+
+
+
+
+
+</body>
+</html>

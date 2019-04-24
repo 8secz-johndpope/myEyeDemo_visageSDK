@@ -1,0 +1,27 @@
+cv::Mat frame;
+cv::VideoCapture cap("D:\\eye-demo\\myEyeDemo_visageSDK\\video-1554968291.mp4");
+
+if (!cap.isOpened())
+	return 1;
+
+IrisTracker irisTracker;
+irisTracker.initialize("../visageSDK-Windows-64bit_v8.5/visageSDK/Samples/data/Facial Features Tracker - High.cfg",
+	"C:\\Users\\jenny\\Desktop\\eye-demo\\lens-2.png", "../visageSDK-Windows-64bit_v8.5/visageSDK/Samples/data/bdtsdata/LBF/vfadata", 25);
+while(true)
+{
+	cap.read(frame);
+	if (frame.empty()) {
+		break;
+	}
+	cv::Mat mask[2];
+	cv::Point pupil[2];
+	int radius = 0;
+	int stat = irisTracker.irisTrack(frame, mask, pupil, &radius);
+	if (stat == 0) {
+		cv::imshow("m", mask[0]);
+		cv::imshow("m2", mask[1]);
+		//cout << radius <<" "<< pupil[0].x<<" "<< pupil[0].y << " "<< pupil[1].x << " " << pupil[1].y <<endl;
+		//int age = irisTracker.getAge(frame);
+		//cout << age<< endl;
+	}
+}

@@ -1,0 +1,172 @@
+﻿<Window x:Class="ShowcaseDemo.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ShowcaseDemo" xmlns:sharpGL="clr-namespace:SharpGL.WPF;assembly=SharpGL.WPF" mc:Ignorable="d" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" Height="748" Width="1146" MinWidth="880" MinHeight="548">
+    <Window.Resources>
+        <Image x:Key="CameraActive" Source="Assets/CamA.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image x:Key="CameraPassive" Source="Assets/CamP.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image x:Key="VideoActive" Source="Assets/VideoA.png" RenderOptions.BitmapScalingMode="HighQuality" />
+        <Image x:Key="VideoPassive" Source="Assets/VideoP.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image x:Key="ImageActive" Source="Assets/ImageA.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <Image x:Key="ImagePassive" Source="Assets/ImageP.png" RenderOptions.BitmapScalingMode="HighQuality"/>
+        <SolidColorBrush x:Key="Active" Color="#0071bc" />
+        <SolidColorBrush x:Key="Passive" Color="#d8d8d8" />
+        <SolidColorBrush x:Key="Disabled" Color="#646464" />
+    </Window.Resources>
+    <Grid>
+        <StackPanel DockPanel.Dock="Left" Panel.ZIndex="2" Margin="10,10,0,10" HorizontalAlignment="Left" Width="115">
+            <StackPanel.Resources>
+                <Style TargetType="{x:Type Button}">
+                    <Setter Property="Margin" Value="5,10,0,0"/>
+                    <Setter Property="HorizontalAlignment" Value="Left"/>
+                    <Setter Property="BorderThickness" Value="0"/>
+                    <Setter Property="IsEnabled" Value="True"/>
+                    <Style.Triggers>
+                        <Trigger Property="IsEnabled" Value="false">
+                            <Setter Property="Opacity" Value="0.1"/>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+                <Style TargetType="{x:Type Image}" >
+                    <Setter Property="Height" Value="100"/>
+                    <Setter Property="Stretch" Value="Fill"/>
+                    <Setter Property="RenderOptions.BitmapScalingMode" Value="HighQuality"/>
+                </Style>
+            </StackPanel.Resources>
+            <Image Source="Assets/logotype-tagline.png" VerticalAlignment="Bottom" Margin="0,0,-105,0"/>
+        </StackPanel>
+
+
+        <Border Panel.ZIndex="2" Background="#333333" DockPanel.Dock="Right" BorderThickness="0,0,0,0" CornerRadius="0" BorderBrush="Gray" HorizontalAlignment="Right" Width="215">
+            <Grid>
+                <ScrollViewer>
+                    <StackPanel VerticalAlignment="Top"  DockPanel.Dock="Right" Panel.ZIndex="2" Margin="0,0,0,0" HorizontalAlignment="Right" Width="200">
+                        <StackPanel.Resources>
+                            <Style TargetType="{x:Type ComboBox}">
+                                <Setter Property="Foreground" Value="#0071bc"/>
+                            </Style>
+                            <Style TargetType="{x:Type Label}">
+                                <Setter Property="Foreground" Value="#0071bc"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Style>
+                            <Style TargetType="{x:Type RadioButton}">
+                                <Setter Property="Foreground" Value="{DynamicResource Passive}"/>
+                            </Style>
+                            <Style TargetType="{x:Type CheckBox}">
+                                <Setter Property="Foreground" Value="{DynamicResource Passive}"/>
+                                <Setter Property="Margin" Value="10,0,0,0"/>
+                            </Style>
+                            <Style TargetType="{x:Type Separator}">
+                                <Setter Property="Height" Value="5"/>
+                                <Setter Property="Width" Value="120"/>
+                            </Style>
+                        </StackPanel.Resources>
+                        <Label Content="Display options"/>
+                        <CheckBox IsChecked="True" x:Name="cbFrame" Click="checkBox_onClick" Content="Frame" Foreground="{DynamicResource Active}"/>
+                        <CheckBox IsChecked="True" x:Name="cbFeaturePoints" Click="checkBox_onClick" Content="Feature points" Foreground="{DynamicResource Active}"/>
+                        <CheckBox IsChecked="True" x:Name="cbSplines" Click="checkBox_onClick" Content="Splines" Foreground="{DynamicResource Active}"/>
+                        <CheckBox IsChecked="True" x:Name="cbTrackingQuality" Click="checkBox_onClick" Content="Tracking quality" Foreground="{DynamicResource Active}"/>
+                        <CheckBox x:Name="cbGaze" Click="checkBox_onClick" Content="Gaze"/>
+                        <CheckBox x:Name="cbAxes" Click="checkBox_onClick" Content="Axes"/>
+                        <CheckBox x:Name="cbWireFrame" Click="checkBox_onClick" Content="Wire frame"/>
+                        <CheckBox x:Name="cbMirror" Click="checkBox_onClick" Content="Mirror"/>
+                        <CheckBox x:Name="cbTexturedModel" Click="checkBox_onClick" Margin="10,0,0,5" Content="Textured model"/>
+                        <Separator x:Name="separator0" Width="Auto" Height="Auto" Margin="20,2,20,2"/>
+                        <Label Content="Face analysis"/>
+                        <CheckBox x:Name="cbAge" Click="checkBox_onClick" Content="Age estimation" ToolTipService.ShowOnDisabled="True"/>
+                        <CheckBox x:Name="cbGender" Click="checkBox_onClick" Content="Gender estimation"/>
+                        <CheckBox x:Name="cbEmotion" Click="checkBox_onClick" Margin="10,0,0,5" Content="Emotion estimation"/>
+                        <Separator x:Name="separator1" Width="Auto" Height="Auto" Margin="20,2,20,2"/>
+                        <Label Content="Face recognition"/>
+                        <CheckBox x:Name="cbRecognition" Click="checkBox_onClick" Content="Match faces"/>
+                        <CheckBox x:Name="cbFreeze" Click="checkBox_onClick" Content="Freeze gallery"/>
+                        <Label Margin="10,0" FontSize="11" Content="Gallery :"/>
+                        <StackPanel Orientation="Horizontal" Height="90" Margin="19,0,10,5">
+                            <ListBox x:Name="lbxNames" Background="#333333" HorizontalAlignment="Center" Width="110" BorderThickness="2" AutomationProperties.HelpText="Click on names to edit" ToolTip="Click on names to edit"/>
+                            <StackPanel Margin="10,0" HorizontalAlignment="Center" Width="38">
+                                <StackPanel.Resources>
+                                    <Style TargetType="{x:Type Button}">
+                                        <Setter Property="Margin" Value="0,8,0,0"/>
+                                    </Style>
+                                </StackPanel.Resources>
+                                <Button Foreground="{DynamicResource Active}" Background="#00000000" x:Name="loadGalleryButton" Click="loadGalleryButton_Click" Content="Load" BorderBrush="#00707070" FontWeight="Bold"/>
+                                <Button Foreground="{DynamicResource Active}" Background="#00000000" x:Name="saveGalleryButton" Click="saveGalleryButton_Click" Content="Save" BorderBrush="#00707070" FontWeight="Bold"/>
+                                <Button Foreground="{DynamicResource Active}" Background="#00000000" x:Name="clearGallerButton" Click="clearGalleryButton_Click" Content="Clear" BorderBrush="#00707070" FontWeight="Bold"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Separator x:Name="separator2" Width="Auto" Height="Auto" Margin="20,2,20,2"/>
+                        <Label Content="Configurations"/>
+                        <RadioButton Content="Facial Features Tracker - High" x:Name="rbFFTHigh" IsChecked="True" Click="rbFFTHigh_Clicked" HorizontalAlignment="Right" Width="190" Foreground="{DynamicResource Active}"/>
+                        <RadioButton Content="Facial Features Tracker - Low" x:Name="rbFFTLow" Click="rbFFTLow_Clicked" HorizontalAlignment="Right" Width="190" Margin="0,0,0,5" />
+                        <Separator x:Name="separator3" Width="Auto" Height="Auto" Margin="20,2,20,10"/>
+                        <ComboBox x:Name="cbCameraChoice" Margin="5,0,10,5" SelectionChanged="cbCameraChoice_SelectionChanged">
+                            <ComboBox.Resources>
+                                <Style TargetType="{x:Type ComboBoxItem}">
+                                    <Setter Property="ContentTemplate">
+                                        <Setter.Value>
+                                            <DataTemplate>
+                                                <TextBlock Text="{TemplateBinding Content}" TextTrimming="CharacterEllipsis"/>
+                                            </DataTemplate>
+                                        </Setter.Value>
+                                    </Setter>
+                                </Style>
+                            </ComboBox.Resources>
+                        </ComboBox>
+                        <StackPanel Orientation="Horizontal" Height="90" Margin="5,0,10,5">
+                            <StackPanel HorizontalAlignment="Left" Width="30">
+                                <Button Background="#00000000" x:Name="camButton" Click="camButton_Click" ToolTip="Track from default camera source." HorizontalAlignment="Left">
+                                    <DynamicResource ResourceKey="CameraPassive"/>
+                                </Button>
+                                <Button Background="#00000000" x:Name="videoButton" Click="videoButton_Click" ToolTip="Track from video source." HorizontalAlignment="Left">
+                                    <DynamicResource ResourceKey="VideoPassive"/>
+                                </Button>
+                                <Button Background="#00000000" x:Name="imageButton" Click="imageButton_Click" ToolTip="Track from image source." HorizontalAlignment="Left">
+                                    <DynamicResource ResourceKey="ImagePassive"/>
+                                </Button>
+                            </StackPanel>
+                            <StackPanel HorizontalAlignment="Right" Height="Auto">
+                                <Button Foreground="#0071bc" Background="#00000000" x:Name="lCamera" Content="Track from camera" Click="camButton_Click" Margin="0,3,0,0" BorderBrush="#00707070" FontWeight="Bold"/>
+                                <Separator Height="5" Background="Transparent" ></Separator>
+                                <Button Foreground="#0071bc" Background="#00000000" x:Name="lVideo" Content="Track from video" Click="videoButton_Click" Margin="0,3,0,0" BorderBrush="#00707070" FontWeight="Bold"/>
+                                <Separator Height="5" Background="Transparent" ></Separator>
+                                <Button Foreground="#0071bc" Background="#00000000" x:Name="lImage" Content="Track from image" Click="imageButton_Click" Margin="0,3,0,0" BorderBrush="#00707070" FontWeight="Bold"/>
+                            </StackPanel>
+                        </StackPanel>
+                        <Separator x:Name="separator4" Width="Auto" Height="Auto" Margin="20,2,20,10"/>
+                        <Button Foreground="#0071bc" Background="#00000000" x:Name="trackerDetectorButton" Click="trackerDetectorButton_Click" Content="Switch to Detector" Width="140" Margin="0,0,0,5" Height="20"/>
+                        <Button Foreground="#0071bc" Background="#00000000" x:Name="cameraSettingsButton" Click="cameraSettingsButton_Click" Content="Camera Settings" Width="140" Margin="0,0,0,0" Height="20"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <!-- The OpenGL control provides a OpenGL drawing surface. -->
+        <sharpGL:OpenGLControl 
+            Name="openGLControl" Panel.ZIndex="1" DrawFPS="False" RenderContextType="FBO" FrameRate="35" HorizontalContentAlignment="Right" VerticalContentAlignment="Top" VerticalAlignment="Stretch" Height="Auto" Width="Auto" OpenGLDraw="openGLControl_OpenGLDraw" Margin="0,0,215,24" 
+            />
+        <DockPanel VerticalAlignment="Bottom" Height="24" Margin="0,0,215,0">
+            <StatusBar DockPanel.Dock="Bottom" Height="24">
+                <StatusBarItem>
+                    <TextBlock x:Name="lStatus" MinWidth="120"/>
+                </StatusBarItem>
+                <Separator/>
+                <StatusBarItem>
+                    <TextBlock x:Name="lFPS" MinWidth="100"/>
+                </StatusBarItem>
+                <Separator/>
+                <StatusBarItem>
+                    <TextBlock x:Name="lPureTrackTime" MinWidth="100"/>
+                </StatusBarItem>
+                <Separator/>
+                <StatusBarItem>
+                    <TextBlock x:Name="lTranslation" MinWidth="150"/>
+                </StatusBarItem>
+                <Separator/>
+                <StatusBarItem>
+                    <TextBlock x:Name="lRotation" MinWidth="150"/>
+                </StatusBarItem>
+            </StatusBar>
+        </DockPanel>
+        <!--<TextBox AcceptsReturn="True" Name="txtEditor" SelectionChanged="txtEditor_SelectionChanged" />-->
+    </Grid>
+</Window>
