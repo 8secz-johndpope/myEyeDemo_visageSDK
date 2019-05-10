@@ -18,27 +18,28 @@ private:
 	//frame   // 1280*720
 	int resizeFactors[3] = { 3,2,1 };
 	int resizef;
-	bool isVertical = false;   //////////// if get track err 3 all the time, try to change this value 
-	int trackerDelay = 15;    
+	bool isVertical = true;
+	int trackerDelay = 10;
 	// Gaussian blur
-	int blurCount = 4;
-	int blurKernelSize = 3;
+	int blurCount = 5;
+	int blurKernelSize = 5;
 	//Canny
-	int cannyp1 = 60;
-	int cannyp2 = 100;
+	int cannyp1 = 80;
+	int cannyp2 = 120;
 	//MaskForInside_preprocess line type
 	int maskLine = 2;
 	//Iris radius_second calculation bounding, all positive number
-	int radt1Plus = 4;
-	int radt1Minus = 0;
+	int radt1Plus = 3;  //3
+	int radt1Minus = 1;  // 1
 	int radChangeNoLessThan = 3;
 	int borderFactorx = 5;
 	int borderFactory = 4;
+	int radiusAdd = 8;
 	//lens
 	const cv::String* lensPath;
 	float lensTransparentWeight = 0.4;
-	// frame rate
-	int wait = 33 - trackerDelay;
+
+	int wait = 13 - trackerDelay;
 
 	int frameRate;  // must > 20;
 	VisageSDK::VisageTracker* tracker;
@@ -60,10 +61,9 @@ public:
 	// framerate must > 20
 	void initialize(const char* highCfg, const char* lensPath, const char* vfadata, int framerate);
 
-	// frame_ is the current frame, mask and pupil is the output Iris mask and pupil, [0] is left and [1] is right,
-	// radius is the Iris radius. The origin of pupil is set to the upper-left corner of the frame
+	// output will be the picture to show
 	// return 0 if tracking success, 1 if eye closure is detect(having no pupil and mask), 2 3 4 5 if error 
-	int irisTrack(cv::Mat frame_, cv::Mat mask[2], cv::Point pupil[2], int* radius);
+	int irisTrack(cv::Mat frame_, cv::Mat& output);
 
 	// get the properties of the face detected
 	int getAge(cv::Mat frame);
@@ -76,7 +76,6 @@ private:
 	bool isNearBorder(cv::Point point, cv::Rect rect);
 	float pointsDistance(int* cvCoor, cv::Point point);
 	float pointsDistance(cv::Point2d p1, cv::Point p2);
-	void hsl(cv::Mat roi);
 
 public:
 	IrisTracker();
