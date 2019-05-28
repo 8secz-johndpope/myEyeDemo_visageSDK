@@ -230,7 +230,7 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 		cv::merge(bgr, lens);
 
 		try {
-			cv::resize(_lens, lens, cv::Size((int)radius * 2, (int)radius * 2));
+			cv::resize(lens, lens, cv::Size((int)radius * 2, (int)radius * 2));
 		}
 		catch (exception err) {
 			cout << "lens resize err" << endl;
