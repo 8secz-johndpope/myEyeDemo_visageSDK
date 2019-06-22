@@ -5,10 +5,11 @@
 #include <opencv2/core/types_c.h>
 
 
-namespace VisageSDK //all visage|SDK calls must be in visageSDK namespace
-{
-	void __declspec(dllimport) initializeLicenseManager(const char *licenseKeyFileFolder);
-}
+//namespace VisageSDK //all visage|SDK calls must be in visageSDK namespace
+//{
+//	int __declspec(dllimport) initializeLicenseManager(const char *licenseKeyFileFolder);
+//
+//}
 
 class IrisTracker
 {
@@ -16,7 +17,6 @@ private:
 
 	////// ipad setting//////  
 	//frame   // 1280*720
-	int resizeFactors[3] = { 3,2,1 };
 	int resizef;
 	bool isVertical = true;
 	int trackerDelay = 10;
@@ -51,7 +51,8 @@ private:
 	const char* rightPupil = "3.6";
 	std::vector<cv::Point> lefteyeCV, righteyeCV;
 	cv::Point leftPupilCV, rightPupilCV;
-	int radius;
+	int radius_l = 0;
+	int radius_r = 0;
 	cv::Mat _lens;
 	bool isChanged = false;
 
@@ -72,8 +73,6 @@ public:
 
 private:
 	int* vis2cv_AxisTransfer(const float* pos, int width, int height);
-	void pointsInside(cv::Mat eyeMask, std::vector< std::vector<cv::Point>>* contours, std::vector<cv::Point2d>* insidePoints, int defx, int defy);
-	bool isNearBorder(cv::Point point, cv::Rect rect);
 	float pointsDistance(int* cvCoor, cv::Point point);
 	float pointsDistance(cv::Point2d p1, cv::Point p2);
 

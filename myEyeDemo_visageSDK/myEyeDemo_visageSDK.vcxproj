@@ -144,7 +144,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>D:\eye-demo\visageSDK-Windows-64bit_v8.5\visageSDK\include;D:\program\openCV\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>D:\eye-demo\myEyeDemo_visageSDK\visageSDK\include;D:\program\openCV\opencv\build\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <WholeProgramOptimization>false</WholeProgramOptimization>
     </ClCompile>
     <Link>
@@ -152,8 +152,11 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>D:\program\openCV\opencv\build\x64\vc15\lib;D:\eye-demo\visageSDK-Windows-64bit_v8.5\visageSDK\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\program\openCV\opencv\build\x64\vc15\lib;D:\eye-demo\myEyeDemo_visageSDK\visageSDK\bin64;D:\eye-demo\myEyeDemo_visageSDK\visageSDK\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>opencv_world343d.lib;opencv_world343.lib;libVisageAnalyser64.lib;libVisageGaze64.lib;libVisageVision64.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ImportLibrary>D:\eye-demo\myEyeDemo_visageSDK\visageSDK\bin64</ImportLibrary>
+      <EntryPointSymbol>
+      </EntryPointSymbol>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

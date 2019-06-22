@@ -76,15 +76,12 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 	//left pupil
 	pos = trackingData[0].featurePoints2D->getFPPos(leftPupil);
 	cvCoor = vis2cv_AxisTransfer(pos, ipl->width, ipl->height);
-	if (leftPupilCV.x == 0 || pointsDistance(cvCoor, leftPupilCV) > 0) {
-		leftPupilCV = cv::Point(cvCoor[0], cvCoor[1]);
-	}
+	leftPupilCV = cv::Point(cvCoor[0], cvCoor[1]);
+	
 	//right pupil
 	pos = trackingData[0].featurePoints2D->getFPPos(rightPupil);
 	cvCoor = vis2cv_AxisTransfer(pos, ipl->width, ipl->height);
-	if (rightPupilCV.x == 0 || pointsDistance(cvCoor, rightPupilCV) > 0) {
-		rightPupilCV = cv::Point(cvCoor[0], cvCoor[1]);
-	}
+	rightPupilCV = cv::Point(cvCoor[0], cvCoor[1]);
 
 
 	// get eyesquare roi
@@ -103,21 +100,6 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 	cv::Mat leftRoi(frame, leftRect);
 	cv::Mat rightRoi(frame, rightRect);
 
-	//cv::imshow("left", leftRoi);
-	//cv::imshow("right", rightRoi);
-
-
-	// Blur and get canny
-	cv::Mat leftblurbuffer = leftRoi.clone(), rightblurbuffer = rightRoi.clone();
-	for (int i = 0; i < blurCount; i++) {
-		cv::GaussianBlur(leftblurbuffer, leftblurbuffer, cv::Size(blurKernelSize, blurKernelSize), 1);
-		cv::GaussianBlur(rightblurbuffer, rightblurbuffer, cv::Size(blurKernelSize, blurKernelSize), 1);
-	}
-	cv::Mat leftCanny, rightCanny;
-	cv::Canny(leftblurbuffer, leftCanny, cannyp1, cannyp2);
-	cv::Canny(rightblurbuffer, rightCanny, cannyp1, cannyp2);
-	//imshow("rightC", rightCanny);
-	//imshow("leftC", leftCanny);
 
 	// draw two eye contour mask(from boundoing box roi) seperately
 	cv::Mat lefteyeMask(leftRect.height, leftRect.width, CV_8UC1, cv::Scalar(0)),
@@ -131,85 +113,47 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 	}
 	cv::fillConvexPoly(lefteyeMask, cl_, 8, cv::Scalar(255, 255, 255));
 	cv::fillConvexPoly(righteyeMask, cr_, 8, cv::Scalar(255, 255, 255));
-	cv::Mat lefteyeMaskForInside = lefteyeMask.clone(), righteyeMaskForInside = righteyeMask.clone();
 
 
-	// shrink the mask for function "pointsInside()"
-	for (int i = 0; i < 8; i++) {
+	// shrink the mask 
+	// lower
+	for (int i = 4; i < 8; i++) {
 		if (i == 7) {
-			cv::line(lefteyeMaskForInside, cl_[i], cl_[0], cv::Scalar(0), maskLine);
-			cv::line(righteyeMaskForInside, cr_[i], cr_[0], cv::Scalar(0), maskLine);
+			cv::line(lefteyeMask, cl_[i], cl_[0], cv::Scalar(0), maskLine);
+			cv::line(righteyeMask, cr_[i], cr_[0], cv::Scalar(0), maskLine);
 		}
 		else {
-			cv::line(lefteyeMaskForInside, cl_[i], cl_[i + 1], cv::Scalar(0), maskLine);
-			cv::line(righteyeMaskForInside, cr_[i], cr_[i + 1], cv::Scalar(0), maskLine);
+			cv::line(lefteyeMask, cl_[i], cl_[i + 1], cv::Scalar(0), maskLine);
+			cv::line(righteyeMask, cr_[i], cr_[i + 1], cv::Scalar(0), maskLine);
 		}
 	}
 
-
-	// get contours inside eye
-	std::vector< std::vector<cv::Point>> leftContours, rightContours;
-
-	cv::findContours(leftCanny, leftContours, 1, CV_CHAIN_APPROX_NONE);
-	cv::findContours(rightCanny, rightContours, 1, CV_CHAIN_APPROX_NONE);
-	std::vector<cv::Point2d> leftInside, rightInside;
-
-	pointsInside(lefteyeMaskForInside, &leftContours, &leftInside, leftRect.x, leftRect.y);
-	pointsInside(righteyeMaskForInside, &rightContours, &rightInside, rightRect.x, rightRect.y);
+	// upper
+	for (int i = 0; i < 4; i++) {
+		if (i == 7) {
+			cv::line(lefteyeMask, cl_[i], cl_[0], cv::Scalar(0), 8);
+			cv::line(righteyeMask, cr_[i], cr_[0], cv::Scalar(0), 8);
+		}
+		else {
+			cv::line(lefteyeMask, cl_[i], cl_[i + 1], cv::Scalar(0), 8);
+			cv::line(righteyeMask, cr_[i], cr_[i + 1], cv::Scalar(0), 8);
+		}
+	}
 
 
 	// calculate Iris radius 
 	if (trackingData[0].eyeClosure[0] && trackingData[0].eyeClosure[1]) {  // if eye-closure detected, then continue for next frame
 
-		bool isBorder = false;
-		if (!isNearBorder(leftPupilCV, leftRect)
-			&& !isNearBorder(rightPupilCV, rightRect)) {
-
-			int radius_t1 = 0, radius_t2 = 0;
-			// first calculate
-			for (int i = 0; i < leftInside.size(); i++) {
-				radius_t1 += sqrt(pow((leftInside.at(i).x + leftRect.x - leftPupilCV.x), 2) +
-					pow((leftInside.at(i).y + leftRect.y - leftPupilCV.y), 2));
+		if (trackingData[0].irisRadius[0] != -1 && trackingData[0].irisRadius[1] != -1) {
+			if (abs(trackingData[0].irisRadius[0] - radius_l) > 1) {
+				radius_l = round(trackingData[0].irisRadius[0]);
+				radius_l *= 1.3;
 			}
-			for (int i = 0; i < rightInside.size(); i++) {
-				radius_t1 += sqrt(pow((rightInside.at(i).x + rightRect.x - rightPupilCV.x), 2) +
-					pow((rightInside.at(i).y + rightRect.y - rightPupilCV.y), 2));
-			}
-			if (rightInside.size() + leftInside.size() != 0)
-				radius_t1 /= rightInside.size() + leftInside.size();
-
-			// delete unqulified points
-			int count = 0;
-			for (int i = 0; i < leftInside.size(); i++) {
-				float dis = sqrt(pow((leftInside.at(i).x + leftRect.x - leftPupilCV.x), 2) +
-					pow((leftInside.at(i).y + leftRect.y - leftPupilCV.y), 2));
-				if (dis < radius_t1 + radt1Plus && dis > radius_t1 - radt1Minus) {
-					count++;
-					radius_t2 += dis;
-				}
-			}
-			for (int i = 0; i < rightInside.size(); i++) {
-				float dis = sqrt(pow((rightInside.at(i).x + rightRect.x - rightPupilCV.x), 2) +
-					pow((rightInside.at(i).y + rightRect.y - rightPupilCV.y), 2));
-				if (dis < radius_t1 + radt1Plus && dis > radius_t1 - radt1Minus) {
-					count++;
-					radius_t2 += dis;
-				}
-			}
-
-			if (count != 0)
-				radius_t2 /= count;
-			if (abs((radius_t2 - (radius - radiusAdd))) > radChangeNoLessThan) {
-				radiusAdd = radius * 0.32;
-				radius = radius_t2 + radiusAdd;
+			if (abs(trackingData[0].irisRadius[1] - radius_r) > 1) {
+				radius_r = round(trackingData[0].irisRadius[1]);
+				radius_r *= 1.3;
 			}
 		}
-		else {
-			radius *= 0.8;
-			isBorder = true;
-		}
-
-
 
 		// load lens pic and resize, set seperate lens roi(square) on face
 		if (isChanged) {
@@ -218,27 +162,18 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 		}
 
 
-		std::vector<cv::Mat> bgr;
+		std::vector<cv::Mat> bgr(4);
 		cv::split(_lens, bgr);
 
 		/// this line error
-		cv::Mat transChannel = bgr[3].clone();
-		//cv::imshow("transtestett", transChannel);
+		cv::Mat transChannel = bgr[3]; //.clone();
 		bgr.pop_back();
 
 		cv::Mat lens;
 		cv::merge(bgr, lens);
 
-		try {
-			cv::resize(lens, lens, cv::Size((int)radius * 2, (int)radius * 2));
-		}
-		catch (exception err) {
-			cout << "lens resize err" << endl;
-			return 4;
-		}
-
-		cv::Rect leftIrisRect(leftPupilCV.x - radius, leftPupilCV.y - radius, 2 * radius, 2 * radius),
-			rightIrisRect(rightPupilCV.x - radius, rightPupilCV.y - radius, 2 * radius, 2 * radius);
+		cv::Rect leftIrisRect(leftPupilCV.x - radius_l, leftPupilCV.y - radius_l, 2 * radius_l, 2 * radius_l),
+			rightIrisRect(rightPupilCV.x - radius_r, rightPupilCV.y - radius_r, 2 * radius_r, 2 * radius_r);
 		if (!(0 <= leftIrisRect.x && leftIrisRect.x + leftIrisRect.width <= frame.cols && 0 <= leftIrisRect.y &&  leftIrisRect.y + leftIrisRect.height <= frame.rows)) {
 			return 4;
 		}
@@ -249,8 +184,10 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 
 
 		// make border on mask for the later roi cutting. The Rect x y need to add the border
-		int margin = radius + 10;
+		int margin = radius_l + 10;
 		cv::copyMakeBorder(lefteyeMask, lefteyeMask, margin, margin, margin, margin, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
+
+		margin = radius_r + 10;
 		cv::copyMakeBorder(righteyeMask, righteyeMask, margin, margin, margin, margin, cv::BORDER_CONSTANT, cv::Scalar(0, 0, 0));
 		//cv::imshow("mask", lefteyeMask);
 
@@ -265,11 +202,11 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 
 			// make transparent mask				
 			cv::Mat transMask;
-			cv::resize(transChannel, transMask, cv::Size((int)radius * 2, (int)radius * 2), 0, 0, CV_INTER_AREA);
+			transMask = transChannel.clone();
 
 
 			/////// adjust the color of lens/////////
-
+			/*
 			// HLS, assimilate the L channel
 			cv::Mat hls;
 			cv::cvtColor(leftRoi, hls, cv::COLOR_BGR2HLS);
@@ -304,7 +241,7 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 
 			//////// add to the origin frame with transparency /////////
 			cv::cvtColor(lens, lens, cv::COLOR_HLS2BGR);
-
+			*/
 			// by .mul and transMask
 			std::vector<cv::Mat> trans;
 
@@ -316,16 +253,18 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 			//imshow("lenstran__", lens);
 
 			//left eye
+			cv::Mat transbuffer;
 			cv::Mat buffer = leftIrisRoi.clone();
+			cv::resize(buffer, buffer, cv::Size(1050, 1050), CV_INTER_CUBIC);
+			cv::resize(leftMask, leftMask, cv::Size(1050, 1050), CV_INTER_CUBIC);
 			cv::Mat full(buffer.cols, buffer.rows, CV_8UC3, cv::Scalar(255, 255, 255));
 
-			cv::Mat transbufffer;
-			transMask.copyTo(transbufffer, leftMask);
-			multiply(buffer, full - transbufffer, buffer, 1 / 255.0);
-			//imshow("lenstran", buffer);
+			transMask.copyTo(transbuffer, leftMask);
+			cv::multiply(buffer, full - transbuffer, buffer, 1 / 255.0);
 
 			cv::add(buffer, lens, buffer, leftMask);
-			//imshow("f", buffer);
+			cv::resize(buffer, buffer, cv::Size(500, 500));
+			cv::resize(buffer, buffer, cv::Size(leftIrisRoi.cols, leftIrisRoi.rows), 0, 0, CV_INTER_AREA);
 
 			leftIrisRoi = leftIrisRoi * 0 + buffer * 1;
 			cv::GaussianBlur(leftIrisRoi, leftIrisRoi, cv::Size(3, 3), 1);
@@ -333,18 +272,27 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 
 			// right eye
 			buffer = rightIrisRoi.clone();
-			transMask.copyTo(transbufffer, rightMask);
-			cv::multiply(buffer, full - transbufffer, buffer, 1 / 255.0);
+			transbuffer = cv::Mat(transMask.rows, transMask.cols, CV_8UC1, cv::Scalar(0));
+
+			cv::resize(buffer, buffer, cv::Size(1050, 1050));
+			cv::resize(rightMask, rightMask, cv::Size(1050, 1050));
+			transMask.copyTo(transbuffer, rightMask);
+							
+			cv::multiply(buffer, full - transbuffer, buffer, 1 / 255.0);
+
 			cv::add(buffer, lens, buffer, rightMask);
+
+			cv::resize(buffer, buffer, cv::Size(500, 500));
+			imshow("test", buffer);
+
+			resize(buffer, buffer, cv::Size(rightIrisRoi.cols, rightIrisRoi.rows), 0, 0, CV_INTER_AREA);
+
 			rightIrisRoi = rightIrisRoi * 0 + buffer * 1;
 			cv::GaussianBlur(rightIrisRoi, rightIrisRoi, cv::Size(3, 3), 1);
 
-			cv::Mat lShow(frame, leftRect), rShow(frame, rightRect);
-			//cv::imshow("ll", lShow);
+			cv::Mat lShow(frame, leftRect), rShow(frame, rightRect);//cv::imshow("ll", lShow);
 			//cv::imshow("rr", rShow);
-			if (isBorder) {
-				radius /= 0.8;
-			}
+
 		}
 		catch (exception err) {
 			cout << "lensGrayMask or add err" << endl;
@@ -394,26 +342,6 @@ int* IrisTracker::vis2cv_AxisTransfer(const float* pos, int width, int height) {
 	y = height - y;
 	int ans[2] = { x, y };
 	return ans;
-}
-
-// collect contour points inside the eyeMask (input *contours and output *insidePoints)
-void IrisTracker::pointsInside(cv::Mat eyeMask, std::vector< std::vector<cv::Point>>* contours, std::vector<cv::Point2d>* insidePoints, int defx, int defy) {
-	for (int i = 0; i<contours->size(); i++)
-	{
-		for (int j = 0; j < contours->at(i).size(); j++) {
-			cv::Point t = contours->at(i).at(j);
-			if (eyeMask.at<uchar>(t.y, t.x) == 255) {
-				insidePoints->push_back(t);
-			}
-		}
-	}
-}
-
-bool IrisTracker::isNearBorder(cv::Point point, cv::Rect rect) {
-	int xborder = rect.width / borderFactorx;  //12
-	int yborder = rect.height / borderFactory;  //5
-	return point.x - rect.x < xborder || rect.x + rect.width - point.x < xborder
-		|| point.y - rect.y < yborder || rect.y + rect.height - point.y < yborder;
 }
 
 float IrisTracker::pointsDistance(int* cvCoor, cv::Point point) {
