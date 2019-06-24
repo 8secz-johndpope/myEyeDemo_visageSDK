@@ -53,6 +53,9 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 		return 2;
 	}
 
+	frame = face(frame);
+	makeup(trackingData[0], frame.cols, frame.rows, frame);
+
 	// get eye feature points and convert to openCV coordinate (upper-left is(0,0) )
 	const float *pos;
 	int* cvCoor;
@@ -165,7 +168,6 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 		std::vector<cv::Mat> bgr(4);
 		cv::split(_lens, bgr);
 
-		/// this line error
 		cv::Mat transChannel = bgr[3]; //.clone();
 		bgr.pop_back();
 
@@ -263,7 +265,6 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 			cv::multiply(buffer, full - transbuffer, buffer, 1 / 255.0);
 
 			cv::add(buffer, lens, buffer, leftMask);
-			cv::resize(buffer, buffer, cv::Size(500, 500));
 			cv::resize(buffer, buffer, cv::Size(leftIrisRoi.cols, leftIrisRoi.rows), 0, 0, CV_INTER_AREA);
 
 			leftIrisRoi = leftIrisRoi * 0 + buffer * 1;
@@ -281,10 +282,6 @@ int IrisTracker::irisTrack(cv::Mat frame_, cv::Mat& output)
 			cv::multiply(buffer, full - transbuffer, buffer, 1 / 255.0);
 
 			cv::add(buffer, lens, buffer, rightMask);
-
-			cv::resize(buffer, buffer, cv::Size(500, 500));
-			imshow("test", buffer);
-
 			resize(buffer, buffer, cv::Size(rightIrisRoi.cols, rightIrisRoi.rows), 0, 0, CV_INTER_AREA);
 
 			rightIrisRoi = rightIrisRoi * 0 + buffer * 1;
@@ -351,6 +348,98 @@ float IrisTracker::pointsDistance(int* cvCoor, cv::Point point) {
 float IrisTracker::pointsDistance(cv::Point2d p1, cv::Point p2) {
 	return sqrt(pow((p1.x - p2.x), 2) + pow((p1.y - p2.y), 2));
 }
+
+cv::Mat IrisTracker::face(cv::Mat image) {
+	cv::Mat dst;
+
+	// int value1 = 3, value2 = 1; 磨皮程度與細節程度
+	int value1 = 3, value2 = 1;
+	int dx = 15;
+	double fc = value1 * 12.5;
+	double p = 0.0f; // 透明度
+	cv::Mat temp1, temp2, temp3, temp4;
+
+	// 雙邊濾波
+	bilateralFilter(image, temp1, dx, fc, fc);
+
+	// temp2 = (temp1 - image + 128);
+	cv::Mat temp22;
+	subtract(temp1, image, temp22);
+	// Core.subtract(temp22, new Scalar(128), temp2);
+	add(temp22, cv::Scalar(128, 128, 128, 128), temp2);
+	// 高斯模糊
+
+	//GaussianBlur(temp2, temp3, Size(2 * value2 - 1, 2 * value2 - 1), 0, 0);
+	temp3 = temp2;
+
+	// temp4 = image + 2 * temp3 - 255;
+	cv::Mat temp44;
+	//temp3.convertTo(temp44, temp3.type(), 4, -510);
+	temp3.convertTo(temp44, temp3.type(), 2, -256);
+
+	add(image, temp44, temp4);
+	// dst = (image*(100 - p) + temp4*p) / 100;
+	addWeighted(image, p, temp4, 1 - p, 0.0, dst);
+
+	add(dst, cv::Scalar(10, 10, 10), dst);
+	return dst;
+
+}
+
+void IrisTracker::makeup(VisageSDK::FaceData faceData, int width, int height, cv::Mat frame) {
+	// 10  8
+	const char* mouthPoints_outer[] = { "8.4", "8.6", "8.9", "8.1", "8.10", "8.5", "8.3", "8.7", "8.2", "8.8" };
+	const char* mouthPoints_inner[] = { "2.5", "2.7", "2.2", "2.6", "2.4", "2.8", "2.3", "2.9" };
+
+	cv::Point mouth_outer[10], mouth_inner[8];
+
+	cv::Mat mask(frame.rows, frame.cols, CV_8UC1, cv::Scalar(255));
+
+	// mouth
+	for (int i = 0; i < 10; i++) {
+		const float* pos = faceData.featurePoints2D->getFPPos(mouthPoints_outer[i]);
+		int* cvcoor = vis2cv_AxisTransfer(pos, width, height);
+		mouth_outer[i] = cv::Point(cvcoor[0], cvcoor[1]);
+	}
+	cv::fillConvexPoly(mask, mouth_outer, 10, cv::Scalar(0));
+
+	for (int i = 0; i < 8; i++) {
+		const float* pos = faceData.featurePoints2D->getFPPos(mouthPoints_inner[i]);
+		int* cvcoor = vis2cv_AxisTransfer(pos, width, height);
+		mouth_inner[i] = cv::Point(cvcoor[0], cvcoor[1]);
+	}
+	cv::fillConvexPoly(mask, mouth_inner, 8, cv::Scalar(255));
+
+	// set Roi
+	cv::Mat test = mask.clone();
+	cv::resize(test, test, cv::Size(500, 500));
+
+	std::vector<cv::Point> mouthVector(std::begin(mouth_outer), std::end(mouth_outer));
+	cv::Rect roiRect = boundingRect(mouthVector);
+
+	cv::Mat maskRoi(mask, roiRect), frameRoi(frame, roiRect);
+	cv::imshow("mask", maskRoi);
+
+	cvtColor(frameRoi, frameRoi, CV_BGR2HSV);
+	for (int i = 0; i < frameRoi.rows; i++) {
+		unsigned char* framePtr = frameRoi.ptr<uchar>(i);
+		unsigned char* maskPtr = maskRoi.ptr<uchar>(i);
+
+		int t = 30;
+		for (int j = 0; j < frameRoi.cols * 3; j += 3) {
+			if (maskPtr[j / 3] == 0) {
+				if (framePtr[j + 1] + t > 255) {
+					framePtr[j + 1] = 255;
+				}
+				else {
+					framePtr[j + 1] += t;
+				}
+			}
+		}
+	}
+	cvtColor(frameRoi, frameRoi, CV_HSV2BGR);
+}
+
 
 IrisTracker::IrisTracker()
 {

@@ -75,7 +75,8 @@ private:
 	int* vis2cv_AxisTransfer(const float* pos, int width, int height);
 	float pointsDistance(int* cvCoor, cv::Point point);
 	float pointsDistance(cv::Point2d p1, cv::Point p2);
-
+	cv::Mat face(cv::Mat image);
+	void makeup(VisageSDK::FaceData faceData, int width, int height, cv::Mat frame);
 public:
 	IrisTracker();
 	~IrisTracker();
